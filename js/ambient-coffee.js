@@ -193,6 +193,9 @@ class AmbientTrack {
   #eventDelay
 
   /** @type {boolean} */
+  #delayAfterPrev
+
+  /** @type {boolean} */
   #continuous
 
   /** @type {NonRepeatingPicker} */
@@ -207,33 +210,49 @@ class AmbientTrack {
   /** @type {GainNode} */
   #gain = AmbientCoffee.audioContext.createGain()
 
-  constructor(sources, {delay = null, distance = AmbientTrack.distances.MEDIUM, indoor = false}) {
+  /** @type {AudioNode} */
+  #eventSourceDestination
+
+  constructor(sources, {delay = null, delayAfterPrev = true, distance = AmbientTrack.distances.MEDIUM, indoor = false}) {
     this.#sources = sources
     this.eventDelay = delay ?? new Range(0, 0)
     this.#continuous = !delay
-    
+    this.#delayAfterPrev = delayAfterPrev
 
-    this.#lowPassFilter.type = 'lowpass'
-    this.#lowPassFilter.frequency.setValueAtTime(2000, AmbientCoffee.audioContext.currentTime)
+    if(this.#eventDelay.min === 0 && this.#eventDelay.max === 0 && !this.#delayAfterPrev) {
+      this.#delayAfterPrev = true
+    }
+
+    this.#gain.setValueAtTime(distance, AmbientCoffee.audioContext.currentTime)
+
+    if(indoor) {
+      this.#lowPassFilter.type = 'lowpass'
+      this.#lowPassFilter.frequency.setValueAtTime(2000, AmbientCoffee.audioContext.currentTime)
+      this.#lowPassFilter.connect(this.#gain)
+      this.#eventSourceDestination = this.#lowPassFilter
+    } else {
+      this.#eventSourceDestination = this.#gain
+    }
   }
 
-  #playEvent() {
-    const source = new NonRepeatingPicker().random(this.#sources)
+  #playEventLoops() {
+    const source = this.#eventSourcePicker.random(this.#sources)
     const delay = this.#eventDelay.random
-    const duration = source.playInto(this.#gain)
+    const when = AmbientCoffee.audioContext.currentTime + delay
+    const duration = source.playInto(this.#eventSourceDestination, when)
 
-    if(this.#continuous) {
-      this.eventTimeHandler = setTimeout(() => this.#playEvent(), duration + this.#eventDelay.random)
-    }
+    this.#eventTimeHandler = setTimeout(
+      this.#playEventLoops,
+      this.#delayAfterPrev ? this.duration + delay : delay
+    )
   }
 
-  playInto(distancegainValuedestinationNode) {
-    const source = new NonRepeatingPicker().random(this.#sources)
-    const duration = source.playInto(destinationNode)
+  #playContinuousAmbience() {
+    const source = this.#eventSourcePicker.random(this.#sources)
+    source.playInto(this.#eventSourceDestination, when)
+  }
 
-    if(this.#continuous) {
-      this.eventTimeHandler = setTimeout(() => this.playInto(destinationNode), duration + this.#eventDelay.random)
-    }
+  playInto(destinationNode) {
   }
 }
 
