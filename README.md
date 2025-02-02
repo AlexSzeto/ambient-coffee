@@ -1,6 +1,8 @@
 # ambient-coffee
 JS library for generating continuous ambience
 
+## TODO
+- Ambient Source start playing mid-clip
 
 ## PLAN
 
