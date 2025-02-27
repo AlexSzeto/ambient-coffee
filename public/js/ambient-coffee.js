@@ -34,7 +34,7 @@ class NonRepeatingPicker {
   }
 }
 
-class SoundClip {
+export class SoundClip {
   /** @type {string} */
   #url = null
   /** @type {boolean} */
@@ -111,7 +111,7 @@ class LabeledObject {
  * @class SoundSource
  * @implements LabeledObject
  */
-class SoundSource {
+export class SoundSource {
   /** @type {string} */
   label
 
@@ -218,6 +218,7 @@ class SoundSource {
    * @returns 
    */
   playSegmentInto(destination, when, duration) {
+    const pick = new NonRepeatingPicker()
     const clip = pick.random(this.#clips)
     duration = Math.min(duration, clip.buffer.duration)
     const offset = Math.random() * (clip.buffer.duration - duration)

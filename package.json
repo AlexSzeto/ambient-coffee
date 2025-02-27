@@ -1,0 +1,24 @@
+{
+  "name": "ambient-coffee",
+  "version": "1.0.0",
+  "description": "JS library for generating continuous ambience",
+  "main": "server.mjs",
+  "scripts": {
+    "server": "node server.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexSzeto/ambient-coffee.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AlexSzeto/ambient-coffee/issues"
+  },
+  "homepage": "https://github.com/AlexSzeto/ambient-coffee#readme",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
