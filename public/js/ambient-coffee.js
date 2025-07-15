@@ -1,10 +1,22 @@
 import { SimpleReverb } from "./reverb.js"
 
-class Range {
+export class Range {
   /** @type {number} */
   min
   /** @type {number} */
   max
+
+  static fromData(data, defaultMin, defaultMax) {
+    let min, max
+    if(!!data && typeof data === 'object') {
+      min = data.min ?? defaultMin
+      max = data.max ?? defaultMax
+    } else {
+      min = defaultMin
+      max = defaultMax
+    }
+    return new Range(min, max)
+  }
 
   constructor(min = 0, max = 0) {
     this.min = min
@@ -25,7 +37,7 @@ class NonRepeatingPicker {
    * @returns {any} A non-repeating random element from the array
    */
   random(array) {
-    let index = Math.floor(Math.random() * array.length - 1)
+    let index = Math.floor(Math.random() * (array.length - 1))
     if(index === this.#prev) {
       index = (index + 1) % array.length
     }
@@ -39,7 +51,7 @@ export class SoundClip {
   #url = null
   /** @type {boolean} */
   #loaded = false
-  /** @type {ArrayBuffer} */
+  /** @type {AudioBuffer} */
   #buffer = null
 
   /**
@@ -48,10 +60,7 @@ export class SoundClip {
    */
   constructor(url = null) {
     this.#loaded = false
-
-    if(url) {
-      this.load(url)
-    }
+    this.#url = url
   }
 
   get url() {
@@ -66,7 +75,11 @@ export class SoundClip {
     return this.#buffer
   }
 
-  load(url) {
+  get duration() {
+    return this.#buffer.duration
+  }
+
+  load(url = null) {
     if (this.#loaded) {
       if (this.#url === url) {
         return Promise.resolve()
@@ -74,10 +87,14 @@ export class SoundClip {
         this.unload()
       }
     }
-    this.#url = url
+    if(!url && !this.#url) {
+      return Promise.reject(new Error('No URL provided'))
+    } else if (!!url) {
+      this.#url = url
+    }
 
     return new Promise((resolve, reject) => {
-      fetch(url)
+      fetch(this.#url)
       .then(response => response.arrayBuffer())
       .then(arrayBuffer => {
         AmbientCoffee.audioContext.decodeAudioData(arrayBuffer, buffer => {
@@ -141,23 +158,24 @@ export class SoundSource {
    * @param {Range} options.decay
    * 
    */
-  constructor(label, clips, {repeatCount = null, repeatDelay = null, attack = null, decay = null}) {
+  constructor(label, clips, {repeatCount = null, repeatDelay = null, attack = null, decay = null} = {}) {
     this.label = label
     this.#clips = clips
-    this.repeatCount = repeatCount ?? new Range(1, 1)
-    this.repeatDelay = repeatDelay ?? new Range(0, 0)
-    this.attack = attack ?? new Range(0, 0)
-    this.decay = decay ?? new Range(0, 0)
+    this.repeatCount = Range.fromData(repeatCount, 1, 1)
+    this.repeatDelay = Range.fromData(repeatDelay, 0, 0)
+    this.attack = Range.fromData(attack, 0, 0)
+    this.decay = Range.fromData(decay, 0, 0)
   }
 
   /**
    * @returns {Range}
    * @readonly
    */
-  get length() {
+  get duration() {
     return this.#clips.reduce((range, clip) => {
-      range.min = Math.min(range.min, clip.length)
-      range.max = Math.max(range.max, clip.length)
+      range.min = Math.min(range.min, clip.duration)
+      range.max = Math.max(range.max, clip.duration)
+      return range
     }, new Range(Number.MAX_VALUE, Number.MIN_VALUE))
   }
 
@@ -169,7 +187,9 @@ export class SoundSource {
     return this.#clips
   }
   /**
-   * 
+   * plays the clip multiple times according to repeatCount and repeatDelay,
+   * and uses the attack and decay times to envelope the entire sequence.
+   * Each clip is drawn randomly from the source clips and played in full.
    * @param {AudioNode} destination
    * @param {number} when
    * @returns {number} Duration of the play event
@@ -187,7 +207,7 @@ export class SoundSource {
       const bufferSource = AmbientCoffee.audioContext.createBufferSource()
       bufferSource.buffer = clip.buffer
       bufferSource.connect(envelope)
-      bufferSource.start(when, offset, duration)
+      bufferSource.start(when, 0, clip.buffer.duration)
 
       when += this.repeatDelay.random + clip.buffer.duration
     }
@@ -211,7 +231,9 @@ export class SoundSource {
   }
 
   /**
-   * 
+   * picks a random clip from the source clips and plays a segment of it into the destination.
+   * The inner offset is randomly chosen within the clip's duration.
+   * repeat and envelope values are ignored.
    * @param {AudioNode} destination 
    * @param {number} when 
    * @param {number} duration 
@@ -244,7 +266,7 @@ class AmbientTrack {
  * @class EventTrack
  * @implements AmbientTrack, LabeledObject
  */
-class EventTrack {
+export class EventTrack {
   /** @type {string} */
   label
 
@@ -280,11 +302,12 @@ class EventTrack {
    * @param {Range} options.delay
    * @param {boolean} options.delayAfterPrev
    */
-  constructor(label, sources, {delay = null, delayAfterPrev = true}) {
+  constructor(label, sources, {delay = null, delayAfterPrev = true} = {}) {
     this.label = label
     this.#sources = sources
-    this.eventDelay = delay ?? new Range(0, 0)
+    this.#eventDelay = Range.fromData(delay, 0, 0)
     this.#delayAfterPrev = delayAfterPrev
+    console.log('this.#delayAfterPrev: ' + this.#delayAfterPrev)
 
     if(this.#eventDelay.min === 0 && this.#eventDelay.max === 0 && !this.#delayAfterPrev) {
       this.#delayAfterPrev = true
@@ -292,14 +315,15 @@ class EventTrack {
   }
 
   #playEventLoops() {
+    console.log('start loop ' + this.label)
     const source = this.#eventSourcePicker.random(this.#sources)
     const delay = this.#eventDelay.random
-    const when = AmbientCoffee.audioContext.currentTime + delay
+    const when = this.#gain.context.currentTime + delay
     const duration = source.repeatInto(this.#gain, when)
 
     this.#eventTimeHandler = setTimeout(
-      this.#playEventLoops,
-      this.#delayAfterPrev ? duration + delay : delay
+      this.#playEventLoops.bind(this),
+      (this.#delayAfterPrev ? duration + delay : delay) * 1000
     )
   }
 
@@ -307,6 +331,7 @@ class EventTrack {
     if(this.#playing) {
       this.disconnect()
     }
+    console.log('playing ' + this.label)
     this.#gain = AmbientCoffee.audioContext.createGain()
     this.#gain.connect(destination)
     this.#playEventLoops()
@@ -326,7 +351,7 @@ class EventTrack {
  * @class LoopingTrack
  * @implements AmbientTrack, LabeledObject
  */
-class LoopingTrack {
+export class LoopingTrack {
   static #equalPowerCrossfadeInCurve = ((resolution) => 
     new Float32Array(resolution).map((_, i) => Math.sin(i / (resolution - 1) * 0.5 * Math.PI))
   )(64)
@@ -364,30 +389,34 @@ class LoopingTrack {
    * @param {Object} options
    * @param {Range} options.duration
    */
-  constructor(label, source, { duration = null }) {
+  constructor(label, source, { duration = null } = {}) {
     this.label = label
     this.#source = source
-    this.#duration = duration ?? source.length
-    this.#crossfadeDuration = Math.min(maxCrossfadeDuration, source.length.min / 2)
+    this.#duration = Range.fromData(duration, source.duration.min, source.duration.max)
+    this.#crossfadeDuration = Math.min(LoopingTrack.defaultCrossFadeDuration, source.duration.min / 2)
   }
 
   #playContinuousAmbience() {
     const crossFadeGain = AmbientCoffee.audioContext.createGain()
-    const duration = this.#source.playSegmentInto(crossFadeGain, AmbientCoffee.audioContext.currentTime, this.length.random)
+    const when = this.#gain.context.currentTime
+    const duration = this.#source.playSegmentInto(crossFadeGain, when, this.#duration.random)
 
     crossFadeGain.gain.setValueCurveAtTime(
       LoopingTrack.#equalPowerCrossfadeInCurve,
-      AmbientCoffee.audioContext.currentTime,
+      when,
       this.#crossfadeDuration
     )
-    this.#gain.gain.setValueCurveAtTime(
+    crossFadeGain.gain.setValueCurveAtTime(
       LoopingTrack.#equalPowerCrossfadeOutCurve,
-      AmbientCoffee.audioContext.currentTime + duration - this.#crossfadeDuration,
+      when + duration - this.#crossfadeDuration,
       this.#crossfadeDuration
     )
     
     crossFadeGain.connect(this.#gain)
-    this.setTimeout(this.#playContinuousAmbience, duration - this.#crossfadeDuration)
+    setTimeout(
+      this.#playContinuousAmbience.bind(this),
+      (duration - this.#crossfadeDuration) * 1000
+    )
   }
 
   playInto(destination) {
@@ -413,12 +442,12 @@ class LoopingTrack {
  * @class AmbientChannel
  * @implements AmbientTrack, LabeledObject
  */
-class AmbientChannel {
+export class AmbientChannel {
   static distances = {
-    VERY_FAR: 0.1,
-    FAR: 0.25,
-    MEDIUM: 0.5,
-    CLOSE: 0.75,
+    'very-far': 0.1,
+    'far': 0.25,
+    'medium': 0.5,
+    'close': 0.75
   }
 
   /** @type {string} */
@@ -442,11 +471,11 @@ class AmbientChannel {
   /** @type {AudioNode} */
   #input
 
-  constructor(label, tracks, {distance = AmbientChannel.distances.MEDIUM, muffled = false, reverb = false}) {
+  constructor(label, tracks, {distance = 'medium', muffled = false, reverb = false} = {}) {
     this.label = label
     this.#tracks = tracks
 
-    this.#output.setValueAtTime(distance, AmbientCoffee.audioContext.currentTime)
+    this.#output.gain.value = AmbientChannel.distances[distance] ?? 1.0
     this.#input = this.#output
 
     if(muffled) {
@@ -502,21 +531,127 @@ class AmbientBrew {
   /** @type {boolean} */
   #playing = false
 
-  constructor(label, channels, fadeDuration = 1) {
-    this.label = label
-    this.#channels = channels
+  constructor(fadeDuration = 2) {
     this.#fadeDuration = fadeDuration
-    this.fade.gain.value = 0
+    this.#fade.gain.value = 0
   }
 
+  #fixBaseUrl(url) {
+    if(url.length > 0 && !url.endsWith('/')) {
+      return url + '/'
+    } else {
+      return url
+    }
+  }
+
+  /**
+   * Loads an ambient brew into the player using a brew definition object.
+   * @param {Object} recipe An ambient brew definition, preferrably deserialized from JSON
+   * @returns {Promise} A promise that resolves when the brew is loaded
+   */
+  async load(recipe) {
+    this.label = recipe.label
+    const mediaUrl = (recipe.mediaUrl !== null) 
+      ? this.#fixBaseUrl(recipe.mediaUrl)
+      : './'
+
+    return new Promise((resolve, reject) => {
+      const clipLibrary = []
+      const loadingClips = []
+      const fullURL = url => mediaUrl + url
+
+      const insertClip = url => {
+        if(!clipLibrary.find(url => clipLibrary.url === fullURL(url))) {
+          const clip = new SoundClip()
+          clipLibrary.push(clip)
+          loadingClips.push(clip.load(fullURL(url)))
+        }
+      }
+
+      recipe.sources = recipe.sources.map(({ clips, ...rest }) => {
+        clips = clips.map(data => {
+          if(
+            typeof data === 'object'
+            && !!data.prefix
+            && !!data.min
+            && !!data.max
+          ) {
+            const padding = data.padding ?? 0
+            const extension = data.extension ?? 'mp3'
+            const unpack = []
+            for(let i = data.min; i <= data.max; i++) {
+              unpack.push(`${data.prefix}${i.toString().padStart(padding, '0')}.${extension}`)
+            }
+            return unpack
+          } else if(typeof data === 'string') {
+            return [data]
+          }
+          return []
+        }).flat()
+        console.log(clips)
+        clips.forEach(insertClip)
+        return { clips, ...rest }
+      })  
+      const fetchClip = url => clipLibrary.find(clip => clip.url === fullURL(url))
+
+      Promise.all(loadingClips)
+      .then(() => {
+        const sources = recipe.sources.map(({ label, clips, ...props }) =>
+          new SoundSource(label, clips.map(fetchClip), props)
+        )
+        const fetchSource = label => sources.find(source => source.label === label)
+
+        const channels = recipe.channels.map(({ label, tracks, ...channelProps }) =>
+          new AmbientChannel(
+            label,
+            tracks.reduce((ambientTracks, { label, type, clones, ...trackProps }) => {
+              clones = clones ?? 1
+              for(let i = 0; i < clones; i++) {
+                switch(type) {
+                  case 'event':
+                    ambientTracks.push(new EventTrack(
+                      label,
+                      trackProps.sources.map(fetchSource),
+                      trackProps
+                    ))
+                    break
+                  case 'loop':
+                    ambientTracks.push(new LoopingTrack(
+                      label,
+                      fetchSource(trackProps.source),
+                      trackProps
+                    ))
+                    break
+                  default:
+                    reject(new Error(`Unknown track type: ${type}`))
+                }
+              }
+              return ambientTracks
+            }, []),
+            channelProps
+          )
+        )
+        this.label = recipe.label
+        this.#channels = channels
+        resolve()
+      })
+      .catch(reject)
+    })
+  }
+
+  /**
+   * 
+   * @param {AudioNode} destination 
+   */
   fadeInto(destination) {
     if(this.#playing) {
       this.disconnect()
     }
     this.#channels.forEach(channel => channel.playInto(this.#fade))
     this.#fade.connect(destination)
-    this.#fade.gain.linearRampToValueAtTime(1, AmbientCoffee.audioContext.currentTime + this.#fadeDuration)
+    this.#fade.gain.linearRampToValueAtTime(1, this.#fade.context.currentTime + this.#fadeDuration)
     this.#playing = true
+    console.log('fading in ' + this.label)
   }
 
   disconnect() {
@@ -525,7 +660,7 @@ class AmbientBrew {
 
   fadeOut() {
     return new Promise((resolve) => {
-      this.#fade.gain.linearRampToValueAtTime(0, AmbientCoffee.audioContext.currentTime + this.#fadeDuration)
+      this.#fade.gain.linearRampToValueAtTime(0, this.#fade.context.currentTime + this.#fadeDuration)
       setTimeout(() => {
         this.disconnect()
         resolve()
@@ -565,19 +700,12 @@ export class AmbientCoffee {
    */
   constructor(baseUrl = '') {
     this.baseUrl = baseUrl
-  }
-
-  #fixBaseUrl(url) {
-    if(url.length > 0 && !url.endsWith('/')) {
-      return url + '/'
-    } else {
-      return url
-    }
+    this.#master.connect(AmbientCoffee.audioContext.destination)
   }
 
   /** @type {string} */
   set baseUrl(url) {
-    this.#baseUrl = this.#fixBaseUrl(url)
+    this.#baseUrl = url
   }
 
   /**
@@ -589,72 +717,17 @@ export class AmbientCoffee {
 
   /**
    * Loads an ambient brew into the player using a brew definition object.
-   * @param {Object} brew An ambient brew definition, preferrably deserialized from JSON
+   * @param {Object} recipe An ambient brew definition, preferrably deserialized from JSON
    * @returns {Promise} A promise that resolves when the brew is loaded
    */
-  async loadBrew(brew) {
-    const baseUrl = (brew.baseUrl !== null) 
-      ? this.#fixBaseUrl(brew.baseUrl)
-      : this.#baseUrl
-
-    return new Promise((resolve, reject) => {
-      const clips = []
-      const progress = []
-      const fullURL = url => baseUrl + url
-
-      brew.sources.forEach(({ clips }) => {
-        clips.forEach(url => {
-          if(!clips.find(url => clips.url === fullURL(url))) {
-            const clip = new SoundClip()
-            clips.push(clip)
-            progress.push(clip.load(fullURL(url)))
-          }
-        })
-      })  
-      const fetchClip = url => clips.find(clip => clip.url === fullURL(url))
-
-      Promise.all(progress)
-      .then(() => {
-        const sources = brew.sources.forEach(({ label, clips, ...props }) =>
-          new SoundSource(label, clips.map(fetchClip), props)
-        )
-        const fetchSource = label => sources.find(source => source.label === label)
-
-        const channels = brew.channels.forEach(({ label, tracks, ...channelProps }) =>
-          new AmbientChannel(
-            label,
-            tracks.reduce((ambientTracks, { label, type, clones, ...trackProps }) => {
-              clones = clones ?? 1
-              for(let i = 0; i < clones; i++) {
-                switch(type) {
-                  case 'event':
-                    ambientTracks.push(new EventTrack(
-                      label,
-                      trackProps.sources.map(fetchSource),
-                      trackProps
-                    ))
-                    break
-                  case 'loop':
-                    ambientTracks.push(new LoopingTrack(
-                      label,
-                      fetchSource(trackProps.source),
-                      trackProps
-                    ))
-                    break
-                  default:
-                    reject(new Error(`Unknown track type: ${type}`))
-                }
-              }
-              return ambientTracks
-            }, []),
-            channelProps
-          )
-        )
-        this.#brews.push(new AmbientBrew(brew.label, channels))
-        resolve()
-      })
-      .catch(reject)
-    })
+  async loadBrew(recipe) {
+    const brew = new AmbientBrew()
+    if(!recipe.mediaUrl) {
+      recipe.mediaUrl = this.#baseUrl
+    }      
+    const loadBrew = brew.load(recipe)
+    loadBrew.then(() => this.#brews.push(brew))
+    return loadBrew
   }
 
   /**
@@ -662,9 +735,10 @@ export class AmbientCoffee {
    * @param {string} label The label of a loaded ambient brew
    * @returns 
    */
-  startBrew(label) {
+  playBrew(label) {
     const nextBrew = this.#brews.find(brew => brew.label === label)
     if(!nextBrew) {
+      console.error(`Brew not found: ${label}`)
       return
     }
 
