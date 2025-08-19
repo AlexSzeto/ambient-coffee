@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/preact@10/dist/preact.umd.js"></script>
+  <script src="https://unpkg.com/preact@10/hooks/dist/hooks.umd.js"></script>
+  <script src="https://unpkg.com/htm@3/dist/htm.umd.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Number Range Picker Demo</title>
+</head>
+<body>
+  <div class="container mx-auto p-8">
+    <h1 class="text-3xl font-bold mb-8">Number Range Picker Demo</h1>
+    
+    <div class="space-y-8">
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Basic Range Picker (0-100)</h2>
+        <div id="basic-range"></div>
+        <div class="mt-4 p-3 bg-gray-100 rounded">
+          <strong>Current Values:</strong> <span id="basic-output">min: 25, max: 75</span>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Volume Range (0-1)</h2>
+        <div id="volume-range"></div>
+        <div class="mt-4 p-3 bg-gray-100 rounded">
+          <strong>Current Values:</strong> <span id="volume-output">min: 0.2, max: 0.8</span>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Frequency Range (20-20000 Hz, Log Scale)</h2>
+        <div id="frequency-range"></div>
+        <div class="mt-4 p-3 bg-gray-100 rounded">
+          <strong>Current Values:</strong> <span id="frequency-output">min: 200, max: 2000</span>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Custom Width (500px)</h2>
+        <div id="wide-range"></div>
+        <div class="mt-4 p-3 bg-gray-100 rounded">
+          <strong>Current Values:</strong> <span id="wide-output">min: 10, max: 90</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Wait for all scripts to load and setup globals
+    window.addEventListener('load', async () => {
+      // Setup global references explicitly on window
+      window.preactHooks = preactHooks;
+      window.preact = preact;
+      window.htm = htm;
+      
+      const { render } = preact;
+      const html = htm.bind(preact.createElement);
+      
+      const { NumberRangePicker } = await import('./js/common/number-range-picker.js');
+
+    // Basic range picker
+    render(
+      html`<${NumberRangePicker}
+        minAllowed=${0}
+        maxAllowed=${100}
+        min=${25}
+        max=${75}
+        onChange=${(values) => {
+          document.getElementById('basic-output').textContent = 
+            `min: ${values.min.toFixed(2)}, max: ${values.max.toFixed(2)}`;
+        }}
+      />`,
+      document.getElementById('basic-range')
+    );
+
+    // Volume range picker
+    render(
+      html`<${NumberRangePicker}
+        minAllowed=${0}
+        maxAllowed=${1}
+        min=${0.2}
+        max=${0.8}
+        onChange=${(values) => {
+          document.getElementById('volume-output').textContent = 
+            `min: ${values.min.toFixed(3)}, max: ${values.max.toFixed(3)}`;
+        }}
+      />`,
+      document.getElementById('volume-range')
+    );
+
+    // Frequency range picker (logarithmic)
+    render(
+      html`<${NumberRangePicker}
+        minAllowed=${20}
+        maxAllowed=${20000}
+        min=${200}
+        max=${2000}
+        scale="log"
+        onChange=${(values) => {
+          document.getElementById('frequency-output').textContent = 
+            `min: ${Math.round(values.min)} Hz, max: ${Math.round(values.max)} Hz`;
+        }}
+      />`,
+      document.getElementById('frequency-range')
+    );
+
+    // Wide range picker
+    render(
+      html`<${NumberRangePicker}
+        width=${500}
+        minAllowed=${0}
+        maxAllowed=${100}
+        min=${10}
+        max=${90}
+        onChange=${(values) => {
+          document.getElementById('wide-output').textContent = 
+            `min: ${values.min.toFixed(1)}, max: ${values.max.toFixed(1)}`;
+        }}
+      />`,
+      document.getElementById('wide-range')
+    );
+    
+    }); // Close the window.addEventListener('load') function
+  </script>
+</body>
+</html>

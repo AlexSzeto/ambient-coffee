@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/preact@10/dist/preact.umd.js"></script>
+  <script src="https://unpkg.com/preact@10/hooks/dist/hooks.umd.js"></script>
+  <script src="https://unpkg.com/htm@3/dist/htm.umd.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>UI Components Demo - Goal 1</title>
+</head>
+<body class="bg-gray-50">
+  <div class="container mx-auto p-8">
+    <h1 class="text-4xl font-bold mb-2 text-gray-800">Ambient Coffee UI Components</h1>
+    <p class="text-gray-600 mb-8">Goal 1: Reusable UI Components Demo</p>
+    
+    <div class="grid gap-8">
+      <!-- Number Range Picker Demo -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold mb-4 text-gray-800">Number Range Picker</h2>
+        <p class="text-gray-600 mb-6">For selecting min/max values used for Range objects in sound properties.</p>
+        
+        <div class="space-y-6">
+          <div>
+            <h3 class="text-lg font-medium mb-3">Repeat Count (1-10)</h3>
+            <div id="repeat-count-range"></div>
+            <div class="mt-3 p-3 bg-gray-100 rounded text-sm">
+              <strong>Current Values:</strong> <span id="repeat-count-output">min: 2, max: 5</span>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-medium mb-3">Repeat Delay (0-5000ms)</h3>
+            <div id="repeat-delay-range"></div>
+            <div class="mt-3 p-3 bg-gray-100 rounded text-sm">
+              <strong>Current Values:</strong> <span id="repeat-delay-output">min: 100, max: 1000</span>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-medium mb-3">Attack/Decay (0-1)</h3>
+            <div id="attack-decay-range"></div>
+            <div class="mt-3 p-3 bg-gray-100 rounded text-sm">
+              <strong>Current Values:</strong> <span id="attack-decay-output">min: 0.1, max: 0.9</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Discrete Value Slider Demo -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold mb-4 text-gray-800">Discrete Value Slider</h2>
+        <p class="text-gray-600 mb-6">For selecting the distance property from predefined options.</p>
+        
+        <div class="space-y-6">
+          <div>
+            <h3 class="text-lg font-medium mb-3">Distance Setting</h3>
+            <div id="distance-slider"></div>
+            <div class="mt-3 p-3 bg-gray-100 rounded text-sm">
+              <strong>Current Value:</strong> <span id="distance-output">medium</span>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-medium mb-3">Quality Setting</h3>
+            <div id="quality-slider"></div>
+            <div class="mt-3 p-3 bg-gray-100 rounded text-sm">
+              <strong>Current Value:</strong> <span id="quality-output">high</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toggle Button Demo -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold mb-4 text-gray-800">Toggle Button</h2>
+        <p class="text-gray-600 mb-6">For boolean properties like muffled, reverb, and delayAfterPrev.</p>
+        
+        <div class="space-y-6">
+          <div>
+            <h3 class="text-lg font-medium mb-3">Sound Properties</h3>
+            <div class="space-y-4">
+              <div id="muffled-toggle"></div>
+              <div id="reverb-toggle"></div>
+              <div id="delay-after-prev-toggle"></div>
+            </div>
+            <div class="mt-4 p-3 bg-gray-100 rounded text-sm">
+              <strong>Current States:</strong> 
+              <br>Muffled: <span id="muffled-output">false</span>
+              <br>Reverb: <span id="reverb-output">true</span>
+              <br>Delay After Previous: <span id="delay-after-prev-output">false</span>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-medium mb-3">Different Sizes</h3>
+            <div class="flex items-center space-x-6">
+              <div id="small-toggle"></div>
+              <div id="medium-toggle"></div>
+              <div id="large-toggle"></div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-medium mb-3">Disabled State</h3>
+            <div id="disabled-toggle"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Combined Example -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold mb-4 text-gray-800">Combined Example: Sound Source Configuration</h2>
+        <p class="text-gray-600 mb-6">Example of how these components would work together in a real sound source editor.</p>
+        
+        <div class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Sound Source Label</label>
+            <input type="text" value="Rain Drops" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div>
+            <h4 class="text-md font-medium mb-3">Repeat Count Range</h4>
+            <div id="combined-repeat-count"></div>
+          </div>
+
+          <div>
+            <h4 class="text-md font-medium mb-3">Repeat Delay Range (ms)</h4>
+            <div id="combined-repeat-delay"></div>
+          </div>
+
+          <div>
+            <h4 class="text-md font-medium mb-3">Distance</h4>
+            <div id="combined-distance"></div>
+          </div>
+
+          <div class="space-y-3">
+            <div id="combined-muffled"></div>
+            <div id="combined-reverb"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Wait for all scripts to load and setup globals
+    window.addEventListener('load', async () => {
+      // Setup global references explicitly on window
+      window.preactHooks = preactHooks;
+      window.preact = preact;
+      window.htm = htm;
+      
+      const { render } = preact;
+      const html = htm.bind(preact.createElement);
+
+      // Import components after globals are ready
+      const { NumberRangePicker } = await import('./js/common/number-range-picker.js');
+      const { DiscreteValueSlider } = await import('./js/common/discrete-value-slider.js');
+      const { ToggleButton } = await import('./js/common/toggle-button.js');
+
+    // Number Range Picker examples
+    render(
+      html`<${NumberRangePicker}
+        minAllowed=${1}
+        maxAllowed=${10}
+        min=${2}
+        max=${5}
+        onChange=${(values) => {
+          document.getElementById('repeat-count-output').textContent = 
+            `min: ${Math.round(values.min)}, max: ${Math.round(values.max)}`;
+        }}
+      />`,
+      document.getElementById('repeat-count-range')
+    );
+
+    render(
+      html`<${NumberRangePicker}
+        minAllowed=${0}
+        maxAllowed=${5000}
+        min=${100}
+        max=${1000}
+        width=${400}
+        onChange=${(values) => {
+          document.getElementById('repeat-delay-output').textContent = 
+            `min: ${Math.round(values.min)}ms, max: ${Math.round(values.max)}ms`;
+        }}
+      />`,
+      document.getElementById('repeat-delay-range')
+    );
+
+    render(
+      html`<${NumberRangePicker}
+        minAllowed=${0}
+        maxAllowed=${1}
+        min=${0.1}
+        max=${0.9}
+        onChange=${(values) => {
+          document.getElementById('attack-decay-output').textContent = 
+            `min: ${values.min.toFixed(2)}, max: ${values.max.toFixed(2)}`;
+        }}
+      />`,
+      document.getElementById('attack-decay-range')
+    );
+
+    // Discrete Value Slider examples
+    const distanceOptions = [
+      { value: 'very-close', label: 'Very Close' },
+      { value: 'close', label: 'Close' },
+      { value: 'medium', label: 'Medium' },
+      { value: 'far', label: 'Far' },
+      { value: 'very-far', label: 'Very Far' }
+    ];
+
+    const qualityOptions = [
+      { value: 'low', label: 'Low' },
+      { value: 'medium', label: 'Medium' },
+      { value: 'high', label: 'High' },
+      { value: 'ultra', label: 'Ultra' }
+    ];
+
+    render(
+      html`<${DiscreteValueSlider}
+        options=${distanceOptions}
+        value="medium"
+        width=${400}
+        onChange=${(value) => {
+          document.getElementById('distance-output').textContent = value;
+        }}
+      />`,
+      document.getElementById('distance-slider')
+    );
+
+    render(
+      html`<${DiscreteValueSlider}
+        options=${qualityOptions}
+        value="high"
+        width=${300}
+        onChange=${(value) => {
+          document.getElementById('quality-output').textContent = value;
+        }}
+      />`,
+      document.getElementById('quality-slider')
+    );
+
+    // Toggle Button examples
+    render(
+      html`<${ToggleButton}
+        label="Muffled"
+        checked=${false}
+        onChange=${(checked) => {
+          document.getElementById('muffled-output').textContent = checked;
+        }}
+      />`,
+      document.getElementById('muffled-toggle')
+    );
+
+    render(
+      html`<${ToggleButton}
+        label="Reverb"
+        checked=${true}
+        onChange=${(checked) => {
+          document.getElementById('reverb-output').textContent = checked;
+        }}
+      />`,
+      document.getElementById('reverb-toggle')
+    );
+
+    render(
+      html`<${ToggleButton}
+        label="Delay After Previous"
+        checked=${false}
+        onChange=${(checked) => {
+          document.getElementById('delay-after-prev-output').textContent = checked;
+        }}
+      />`,
+      document.getElementById('delay-after-prev-toggle')
+    );
+
+    // Different sizes
+    render(html`<${ToggleButton} label="Small" size="sm" checked=${true} />`, 
+          document.getElementById('small-toggle'));
+    render(html`<${ToggleButton} label="Medium" size="md" checked=${true} />`, 
+          document.getElementById('medium-toggle'));
+    render(html`<${ToggleButton} label="Large" size="lg" checked=${true} />`, 
+          document.getElementById('large-toggle'));
+
+    // Disabled state
+    render(html`<${ToggleButton} label="Disabled Toggle" disabled=${true} checked=${true} />`, 
+          document.getElementById('disabled-toggle'));
+
+    // Combined example
+    render(
+      html`<${NumberRangePicker}
+        minAllowed=${1}
+        maxAllowed=${20}
+        min=${3}
+        max=${8}
+        width=${350}
+      />`,
+      document.getElementById('combined-repeat-count')
+    );
+
+    render(
+      html`<${NumberRangePicker}
+        minAllowed=${50}
+        maxAllowed=${2000}
+        min=${200}
+        max=${800}
+        width=${350}
+      />`,
+      document.getElementById('combined-repeat-delay')
+    );
+
+    render(
+      html`<${DiscreteValueSlider}
+        options=${distanceOptions}
+        value="close"
+        width=${350}
+      />`,
+      document.getElementById('combined-distance')
+    );
+
+    render(html`<${ToggleButton} label="Muffled" checked=${false} />`, 
+          document.getElementById('combined-muffled'));
+    render(html`<${ToggleButton} label="Reverb" checked=${true} />`, 
+          document.getElementById('combined-reverb'));
+    
+    }); // Close the window.addEventListener('load') function
+  </script>
+</body>
+</html>

@@ -11,12 +11,20 @@
     *   [x] **Stopping:** Supported.
 *   [x] Rename and move `ambient-brewer.js` to a more appropriate location as it contains test code.
 
+## Front-End Requirements
+
+The project will utilize the following front-end technologies:
+
+*   **Preact:** A fast, lightweight alternative to React with the same modern API
+*   **Preact HTM:** HTML-like syntax for creating Preact components without a build step
+*   **Tailwind CSS:** A utility-first CSS framework for rapid UI development
+
 ## Future Plans
 
 ### Brew Editor UI
 
-*   [ ] **Goal 1: Develop Reusable UI Components**
-    *   [ ] **Subtask 1.1: Number Range Picker (Preact Component)**
+*   [x] **Goal 1: Develop Reusable UI Components**
+    *   [x] **Subtask 1.1: Number Range Picker (Preact Component)**
         *   Implement a UI component in Preact for selecting a min/max value, to be used for all `Range` objects.
         *   **Component Location:** `public/js/common/number-range-picker.js`
         *   **Props:** `width`, `scale`, `minAllowed`, `maxAllowed`, `min`, `max`, `onChange` (callback function).
@@ -29,9 +37,9 @@
             *   When the min and max values overlap, the max dot should be rendered on top, ensuring it is the first to be dragged.
             *   Clicking on the numeric value display above a dot will reveal a text input, allowing for manual entry of the value.
             *   The `onChange` callback will be invoked with an object `{ min, max }` whenever the values change.
-    *   [ ] **Subtask 1.2: Discrete Value Slider**
+    *   [x] **Subtask 1.2: Discrete Value Slider**
         *   Implement a UI component for selecting a single value from a predefined set of labeled options, to be used for the `distance` property.
-    *   [ ] **Subtask 1.3: Toggle Button**
+    *   [x] **Subtask 1.3: Toggle Button**
         *   Implement a reusable toggle button for all boolean properties (e.g., `muffled`, `reverb`, `delayAfterPrev`).
 
 *   [ ] **Goal 2: Implement Sound Asset Management (Sound Sources)**
