@@ -99,15 +99,6 @@
           </div>
 
           <div>
-            <h3 class="text-lg font-medium mb-3">Different Sizes</h3>
-            <div class="flex items-center space-x-6">
-              <div id="small-toggle"></div>
-              <div id="medium-toggle"></div>
-              <div id="large-toggle"></div>
-            </div>
-          </div>
-
-          <div>
             <h3 class="text-lg font-medium mb-3">Disabled State</h3>
             <div id="disabled-toggle"></div>
           </div>
@@ -276,14 +267,6 @@
       />`,
       document.getElementById('delay-after-prev-toggle')
     );
-
-    // Different sizes
-    render(html`<${ToggleButton} label="Small" size="sm" checked=${true} />`, 
-          document.getElementById('small-toggle'));
-    render(html`<${ToggleButton} label="Medium" size="md" checked=${true} />`, 
-          document.getElementById('medium-toggle'));
-    render(html`<${ToggleButton} label="Large" size="lg" checked=${true} />`, 
-          document.getElementById('large-toggle'));
 
     // Disabled state
     render(html`<${ToggleButton} label="Disabled Toggle" disabled=${true} checked=${true} />`, 

@@ -45,13 +45,21 @@ export class ToggleButton extends Component {
         const knobPosition = isChecked ? this.width : 0;
         
         // Determine colors based on state
-        const trackColor = isChecked ? 'bg-blue-500' : 'bg-gray-300';
+        const trackColor = this.disabled ? 'bg-gray-300' : (isChecked ? 'bg-blue-500' : 'bg-gray-300');
         const knobBorderColor = this.disabled ? 'border-gray-400' : 'border-blue-500';
 
         return html`
             <div class="toggle-button inline-flex items-center">
                 ${this.label ? html`
-                    <span class="mr-3 text-sm ${this.disabled ? 'text-gray-400' : 'text-gray-700'} font-medium">
+                    <span class="mr-4 text-xs cursor-pointer transition-colors duration-200 ${
+                        this.disabled 
+                            ? 'text-gray-400' 
+                            : isChecked 
+                                ? 'text-blue-600 font-medium' 
+                                : 'text-gray-600 hover:text-blue-500'
+                    }"
+                        onClick=${() => this.handleToggle()}
+                    >
                         ${this.label}
                     </span>
                 ` : null}
