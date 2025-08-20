@@ -60,6 +60,14 @@ export class DiscreteValueSlider extends Component {
 
     handleMouseDown(e) {
         e.preventDefault();
+        
+        // Calculate initial drag position to prevent visual jump
+        if (this.sliderRef.current) {
+            const rect = this.sliderRef.current.getBoundingClientRect();
+            const position = Math.max(0, Math.min(this.width, e.clientX - rect.left));
+            this.dragPosition = position;
+        }
+        
         this.setState({ isDragging: true });
         document.addEventListener('mousemove', this.boundMouseMove);
         document.addEventListener('mouseup', this.boundMouseUp);
