@@ -194,6 +194,7 @@
         maxAllowed=${1}
         min=${0.1}
         max=${0.9}
+        snap=${0.01}
         onChange=${(values) => {
           document.getElementById('attack-decay-output').textContent = 
             `min: ${values.min.toFixed(2)}, max: ${values.max.toFixed(2)}`;

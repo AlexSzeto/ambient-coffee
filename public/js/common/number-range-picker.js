@@ -5,7 +5,7 @@ import { html } from 'htm/preact';
  * 
  * Props:
  * - width: Width of the component in pixels (default: 300)
- * - scale: Scale type - 'linear' or 'log' (default: 'linear')
+ * - snap: Snap increment for values (default: 1)
  * - minAllowed: Minimum allowed value (default: 0)
  * - maxAllowed: Maximum allowed value (default: 100)
  * - min: Initial minimum value
@@ -19,7 +19,7 @@ export class NumberRangePicker extends Component {
         // Set default props
         const {
             width = 300,
-            scale = 'linear',
+            snap = 1,
             minAllowed = 0,
             maxAllowed = 100,
             min = minAllowed,
@@ -36,7 +36,7 @@ export class NumberRangePicker extends Component {
         
         // Store props for easy access
         this.width = width;
-        this.scale = scale;
+        this.snap = snap;
         this.minAllowed = minAllowed;
         this.maxAllowed = maxAllowed;
 
@@ -60,33 +60,38 @@ export class NumberRangePicker extends Component {
         }
     }
 
-    // Clamp values to allowed range
+    // Clamp values to allowed range and snap to increment
     clampValue(value) {
-        return Math.max(this.minAllowed, Math.min(this.maxAllowed, value));
+        const clamped = Math.max(this.minAllowed, Math.min(this.maxAllowed, value));
+        return this.snapToIncrement(clamped);
+    }
+
+    // Snap value to the nearest increment
+    snapToIncrement(value) {
+        return Math.round(value / this.snap) * this.snap;
+    }
+
+    // Helper method to format values for display
+    formatValue(value) {
+        if (Number.isInteger(this.snap)) {
+            return Math.round(value).toString();
+        } else {
+            // Count decimal places in snap value to determine precision
+            const decimalPlaces = (this.snap.toString().split('.')[1] || '').length;
+            return value.toFixed(decimalPlaces);
+        }
     }
 
     // Convert value to pixel position
     valueToPosition(value) {
-        if (this.scale === 'log') {
-            const logMin = Math.log(this.minAllowed || 1);
-            const logMax = Math.log(this.maxAllowed);
-            const logValue = Math.log(value || 1);
-            return ((logValue - logMin) / (logMax - logMin)) * this.width;
-        } else {
-            return ((value - this.minAllowed) / (this.maxAllowed - this.minAllowed)) * this.width;
-        }
+        return ((value - this.minAllowed) / (this.maxAllowed - this.minAllowed)) * this.width;
     }
 
     // Convert pixel position to value
     positionToValue(position) {
         const ratio = position / this.width;
-        if (this.scale === 'log') {
-            const logMin = Math.log(this.minAllowed || 1);
-            const logMax = Math.log(this.maxAllowed);
-            return Math.exp(logMin + ratio * (logMax - logMin));
-        } else {
-            return this.minAllowed + ratio * (this.maxAllowed - this.minAllowed);
-        }
+        const value = this.minAllowed + ratio * (this.maxAllowed - this.minAllowed);
+        return this.snapToIncrement(value);
     }
 
     // Handle mouse events for dragging
@@ -193,7 +198,7 @@ export class NumberRangePicker extends Component {
         const dotSize = 16;
 
         return html`
-            <div class="number-range-picker p-4">
+            <div class="number-range-picker p-4 pt-12">
                 <!-- Value displays -->
                 <div class="relative" style="width: ${this.width}px;">
                     <!-- Min value -->
@@ -206,18 +211,18 @@ export class NumberRangePicker extends Component {
                             <input
                                 ref=${this.minInputRef}
                                 type="number"
-                                value=${currentMin.toFixed(2)}
+                                value=${this.formatValue(currentMin)}
                                 onChange=${e => this.handleMinInputChange(e)}
                                 onBlur=${() => this.handleMinInputBlur()}
                                 onKeyDown=${e => this.handleMinInputKeyDown(e)}
                                 class="w-full text-center text-xs border rounded px-1 py-0.5"
-                                step="0.01"
+                                step=${this.snap}
                                 min=${this.minAllowed}
                                 max=${this.maxAllowed}
                             />
                         ` : html`
                             <span class="text-xs font-medium text-gray-700 bg-white px-1 py-0.5 rounded shadow-sm border">
-                                ${currentMin.toFixed(2)}
+                                ${this.formatValue(currentMin)}
                             </span>
                         `}
                     </div>
@@ -232,18 +237,18 @@ export class NumberRangePicker extends Component {
                             <input
                                 ref=${this.maxInputRef}
                                 type="number"
-                                value=${currentMax.toFixed(2)}
+                                value=${this.formatValue(currentMax)}
                                 onChange=${e => this.handleMaxInputChange(e)}
                                 onBlur=${() => this.handleMaxInputBlur()}
                                 onKeyDown=${e => this.handleMaxInputKeyDown(e)}
                                 class="w-full text-center text-xs border rounded px-1 py-0.5"
-                                step="0.01"
+                                step=${this.snap}
                                 min=${this.minAllowed}
                                 max=${this.maxAllowed}
                             />
                         ` : html`
                             <span class="text-xs font-medium text-gray-700 bg-white px-1 py-0.5 rounded shadow-sm border">
-                                ${currentMax.toFixed(2)}
+                                ${this.formatValue(currentMax)}
                             </span>
                         `}
                     </div>
