@@ -38,7 +38,10 @@ export class DiscreteValueSlider extends Component {
     getPositionForValue(value) {
         const index = this.options.findIndex(option => option.value === value);
         if (index === -1) return 0;
-        return this.options.length > 1 ? (index / (this.options.length - 1)) * this.width : this.width / 2;
+        
+        // Calculate position as center of each equal-width section
+        const sectionWidth = this.width / this.options.length;
+        return (index + 0.5) * sectionWidth;
     }
 
     // Get nearest value for a given position
@@ -46,8 +49,11 @@ export class DiscreteValueSlider extends Component {
         if (this.options.length === 0) return null;
         if (this.options.length === 1) return this.options[0].value;
         
-        const ratio = position / this.width;
-        const index = Math.round(ratio * (this.options.length - 1));
+        // Calculate which section the position falls into
+        const sectionWidth = this.width / this.options.length;
+        const index = Math.floor(position / sectionWidth);
+        
+        // Clamp index to valid range
         const clampedIndex = Math.max(0, Math.min(this.options.length - 1, index));
         return this.options[clampedIndex].value;
     }
@@ -171,21 +177,21 @@ export class DiscreteValueSlider extends Component {
                     ></div>
                 </div>
 
-                <!-- Option labels using flexbox -->
-                <div class="flex justify-between mt-2 text-xs text-gray-500" style="width: ${this.width}px;">
+                <!-- Option labels using flexbox with equal spacing -->
+                <div class="flex mt-2 text-xs text-gray-500" style="width: ${this.width}px;">
                     ${this.options.map((option) => {
                         const isSelected = option.value === currentValue;
                         
                         return html`
-                            <span 
+                            <div 
                                 key=${option.value} 
-                                class="cursor-pointer transition-colors duration-200 ${
+                                class="flex-1 text-center cursor-pointer transition-colors duration-200 ${
                                     isSelected ? 'text-blue-600 font-medium' : 'text-gray-600 hover:text-blue-500'
                                 }"
                                 onClick=${() => this.handleOptionClick(option.value)}
                             >
                                 ${option.label}
-                            </span>
+                            </div>
                         `;
                     })}
                 </div>
