@@ -148,15 +148,9 @@ export class DiscreteValueSlider extends Component {
 
         return html`
             <div class="discrete-value-slider p-4">
-                <!-- Current value display -->
-                <div class="mb-4 text-center">
-                    <span class="text-sm font-medium text-gray-700 bg-white px-3 py-1 rounded-full shadow-sm border">
-                        ${this.options.find(opt => opt.value === currentValue)?.label || 'None'}
-                    </span>
-                </div>
 
                 <!-- Slider track with single draggable knob -->
-                <div class="relative" style="width: ${this.width}px; height: 40px;">
+                <div class="relative" style="width: ${this.width}px; height: ${dotSize}px;">
                     <!-- Clickable track line -->
                     <div 
                         ref=${this.sliderRef}
@@ -164,25 +158,6 @@ export class DiscreteValueSlider extends Component {
                         style="width: ${this.width}px; height: 4px;"
                         onClick=${(e) => this.handleTrackClick(e)}
                     ></div>
-
-                    <!-- Option labels (clickable) -->
-                    ${this.options.map((option, index) => {
-                        const position = this.options.length > 1 ? (index / (this.options.length - 1)) * this.width : this.width / 2;
-                        const isSelected = option.value === currentValue;
-                        
-                        return html`
-                            <div 
-                                key=${option.value} 
-                                class="absolute top-6 text-xs text-center cursor-pointer transition-colors duration-200 ${
-                                    isSelected ? 'text-blue-600 font-medium' : 'text-gray-600 hover:text-blue-500'
-                                }"
-                                style="left: ${position}px; transform: translateX(-50%); white-space: nowrap;"
-                                onClick=${() => this.handleOptionClick(option.value)}
-                            >
-                                ${option.label}
-                            </div>
-                        `;
-                    })}
 
                     <!-- Single draggable knob with smooth animation -->
                     <div 
@@ -194,6 +169,25 @@ export class DiscreteValueSlider extends Component {
                         style="left: ${knobPosition}px; width: ${dotSize}px; height: ${dotSize}px; z-index: 20;"
                         onMouseDown=${(e) => this.handleMouseDown(e)}
                     ></div>
+                </div>
+
+                <!-- Option labels using flexbox -->
+                <div class="flex justify-between mt-2 text-xs text-gray-500" style="width: ${this.width}px;">
+                    ${this.options.map((option) => {
+                        const isSelected = option.value === currentValue;
+                        
+                        return html`
+                            <span 
+                                key=${option.value} 
+                                class="cursor-pointer transition-colors duration-200 ${
+                                    isSelected ? 'text-blue-600 font-medium' : 'text-gray-600 hover:text-blue-500'
+                                }"
+                                onClick=${() => this.handleOptionClick(option.value)}
+                            >
+                                ${option.label}
+                            </span>
+                        `;
+                    })}
                 </div>
             </div>
         `;

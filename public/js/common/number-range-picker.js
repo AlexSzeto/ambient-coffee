@@ -195,7 +195,7 @@ export class NumberRangePicker extends Component {
         return html`
             <div class="number-range-picker p-4">
                 <!-- Value displays -->
-                <div class="relative mb-8" style="width: ${this.width}px; height: 30px;">
+                <div class="relative" style="width: ${this.width}px;">
                     <!-- Min value -->
                     <div 
                         class="absolute flex items-center justify-center cursor-pointer"
