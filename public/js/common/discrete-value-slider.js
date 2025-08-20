@@ -1,3 +1,6 @@
+import { Component } from 'preact';
+import { html } from 'htm/preact';
+
 /**
  * DiscreteValueSlider - A Preact component for selecting a single value from predefined options
  * 
@@ -7,12 +10,9 @@
  * - onChange: Callback function called with the selected value when it changes
  * - width: Width of the component in pixels (default: 300)
  */
-export class DiscreteValueSlider extends window.preact.Component {
+export class DiscreteValueSlider extends Component {
     constructor(props) {
         super(props);
-        
-        // Access globals inside the constructor
-        this.html = window.htm.bind(window.preact.createElement);
         
         const { options = [], value = null, width = 300 } = props;
         
@@ -20,11 +20,9 @@ export class DiscreteValueSlider extends window.preact.Component {
             currentValue: value || (options[0] && options[0].value)
         };
         
+        // Store props for easy access
         this.width = width;
         this.options = options;
-        
-        // Bind methods
-        this.handleOptionClick = this.handleOptionClick.bind(this);
     }
 
     handleOptionClick(optionValue) {
@@ -36,7 +34,7 @@ export class DiscreteValueSlider extends window.preact.Component {
         const { currentValue } = this.state;
         const currentIndex = this.options.findIndex(option => option.value === currentValue);
 
-        return this.html`
+        return html`
             <div class="discrete-value-slider p-4">
                 <!-- Current value display -->
                 <div class="mb-4 text-center">
@@ -58,7 +56,7 @@ export class DiscreteValueSlider extends window.preact.Component {
                         const position = this.options.length > 1 ? (index / (this.options.length - 1)) * this.width : this.width / 2;
                         const isSelected = option.value === currentValue;
                         
-                        return this.html`
+                        return html`
                             <div key=${option.value} class="absolute top-1/2 transform -translate-y-1/2 -translate-x-1/2">
                                 <!-- Option dot -->
                                 <div 
@@ -86,7 +84,7 @@ export class DiscreteValueSlider extends window.preact.Component {
                     })}
 
                     <!-- Active indicator line -->
-                    ${currentIndex >= 0 && this.options.length > 1 ? this.html`
+                    ${currentIndex >= 0 && this.options.length > 1 ? html`
                         <div 
                             class="absolute top-1/2 transform -translate-y-1/2 bg-blue-500 rounded-full transition-all duration-300"
                             style="left: 0; width: ${(currentIndex / (this.options.length - 1)) * this.width}px; height: 4px;"

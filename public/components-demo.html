@@ -152,6 +152,8 @@
     import { render, createElement } from 'preact';
     import { html } from 'htm/preact';
     import { NumberRangePicker } from './js/common/number-range-picker.js';
+    import { DiscreteValueSlider } from './js/common/discrete-value-slider.js';
+    import { ToggleButton } from './js/common/toggle-button.js';
 
     // Wait for all scripts to load and setup globals
     window.addEventListener('load', async () => {
@@ -199,7 +201,7 @@
       />`,
       document.getElementById('attack-decay-range')
     );
-/*
+
     // Discrete Value Slider examples
     const distanceOptions = [
       { value: 'very-close', label: 'Very Close' },
@@ -322,7 +324,7 @@
           document.getElementById('combined-muffled'));
     render(html`<${ToggleButton} label="Reverb" checked=${true} />`, 
           document.getElementById('combined-reverb'));
-*/    
+    
     }); // Close the window.addEventListener('load') function
   </script>
 </body>

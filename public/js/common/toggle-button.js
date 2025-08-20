@@ -1,3 +1,6 @@
+import { Component } from 'preact';
+import { html } from 'htm/preact';
+
 /**
  * ToggleButton - A Preact component for boolean value selection
  * 
@@ -8,12 +11,9 @@
  * - disabled: Boolean indicating if the toggle is disabled (default: false)
  * - size: Size variant - 'sm', 'md', 'lg' (default: 'md')
  */
-export class ToggleButton extends window.preact.Component {
+export class ToggleButton extends Component {
     constructor(props) {
         super(props);
-        
-        // Access globals inside the constructor
-        this.html = window.htm.bind(window.preact.createElement);
         
         const { checked = false, label = '', disabled = false, size = 'md' } = props;
         
@@ -21,12 +21,10 @@ export class ToggleButton extends window.preact.Component {
             isChecked: checked
         };
         
+        // Store props for easy access
         this.label = label;
         this.disabled = disabled;
         this.size = size;
-        
-        // Bind methods
-        this.handleToggle = this.handleToggle.bind(this);
     }
 
     handleToggle() {
@@ -64,9 +62,9 @@ export class ToggleButton extends window.preact.Component {
 
         const config = sizeConfig[this.size] || sizeConfig.md;
 
-        return this.html`
+        return html`
             <div class="toggle-button inline-flex items-center">
-                ${this.label ? this.html`
+                ${this.label ? html`
                     <span class="mr-3 ${config.text} ${this.disabled ? 'text-gray-400' : 'text-gray-700'} font-medium">
                         ${this.label}
                     </span>
@@ -81,7 +79,7 @@ export class ToggleButton extends window.preact.Component {
                                 ? 'bg-blue-600' 
                                 : 'bg-gray-200'
                     }"
-                    onClick=${this.handleToggle}
+                    onClick=${() => this.handleToggle()}
                     disabled=${this.disabled}
                     aria-checked=${isChecked}
                     aria-label=${this.label || 'Toggle switch'}
