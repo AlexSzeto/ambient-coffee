@@ -51,12 +51,12 @@ export class NumberRangePicker extends Component {
     componentDidUpdate(prevProps, prevState) {
         // Focus input when editing starts
         if (this.state.editingMin && !prevState.editingMin && this.minInputRef) {
-            this.minInputRef.focus();
-            this.minInputRef.select();
+            this.minInputRef.current.focus();
+            this.minInputRef.current.select();
         }
         if (this.state.editingMax && !prevState.editingMax && this.maxInputRef) {
-            this.maxInputRef.focus();
-            this.maxInputRef.select();
+            this.maxInputRef.current.focus();
+            this.maxInputRef.current.select();
         }
     }
 
@@ -119,6 +119,32 @@ export class NumberRangePicker extends Component {
         this.setState({ isDragging: null });
         document.removeEventListener('mousemove', this.boundMouseMove);
         document.removeEventListener('mouseup', this.boundMouseUp);
+    }
+
+    handleTrackClick(e) {
+        // Prevent track clicks while dragging
+        if (this.state.isDragging) return;
+        
+        const rect = this.sliderRef.current.getBoundingClientRect();
+        const position = Math.max(0, Math.min(this.width, e.clientX - rect.left));
+        const clickedValue = this.clampValue(this.positionToValue(position));
+        
+        const minPosition = this.valueToPosition(this.state.currentMin);
+        const maxPosition = this.valueToPosition(this.state.currentMax);
+        
+        // Check if click is in the gray areas (outside the blue range)
+        if (position < minPosition) {
+            // Click to the left of min value - move min to clicked position
+            const newMin = clickedValue;
+            this.setState({ currentMin: newMin });
+            this.props.onChange && this.props.onChange({ min: newMin, max: this.state.currentMax });
+        } else if (position > maxPosition) {
+            // Click to the right of max value - move max to clicked position
+            const newMax = clickedValue;
+            this.setState({ currentMax: newMax });
+            this.props.onChange && this.props.onChange({ min: this.state.currentMin, max: newMax });
+        }
+        // Clicks between min and max (in the blue area) are ignored
     }
 
     // Handle direct value input
@@ -225,14 +251,16 @@ export class NumberRangePicker extends Component {
 
                 <!-- Slider track -->
                 <div class="relative" style="width: ${this.width}px; height: ${dotSize}px;">
+                    <!-- Clickable track with hover effects on gray areas -->
                     <div 
                         ref=${this.sliderRef}
-                        class="absolute top-1/2 transform -translate-y-1/2 bg-gray-300 rounded-full cursor-pointer"
+                        class="absolute top-1/2 transform -translate-y-1/2 bg-gray-300 rounded-full cursor-pointer hover:bg-gray-400 transition-colors duration-150"
                         style="width: ${this.width}px; height: 4px;"
+                        onClick=${(e) => this.handleTrackClick(e)}
                     >
-                        <!-- Selected range -->
+                        <!-- Selected range (blue area) -->
                         <div 
-                            class="absolute top-0 bg-blue-500 rounded-full h-full"
+                            class="absolute top-0 bg-blue-500 rounded-full h-full pointer-events-none"
                             style="left: ${minPosition}px; width: ${maxPosition - minPosition}px;"
                         ></div>
                     </div>
