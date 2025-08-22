@@ -44,17 +44,21 @@ The project will utilize the following front-end technologies:
 
 *   [ ] **Goal 2: Implement Sound Asset Management (Sound Sources)**
     *   [ ] **Subtask 2.1: Sound Source List UI**
-        *   Create a UI to display, add, edit, and delete all available `SoundSource` objects.
+        *   Create a UI to display, add, edit, and delete all available `SoundSource` objects from the current brew file's data.
+        *   The `SoundSource` objects will be managed in the application's state and will not be stored in a separate file.
     *   [ ] **Subtask 2.2: Sound Source Editor UI**
         *   Create a form/modal for editing a `SoundSource`.
+        *   When adding a new `SoundSource`, it should be created with a blank `label`, no `clips`, and default values for all other properties. The editor should not open immediately.
         *   [ ] Text input for `label`.
-        *   [ ] UI to manage the `clips` array (add/remove sound files, define clip sequences).
+        *   [ ] UI to manage the `clips` array (add/remove sound files).
         *   [ ] Use Number Range Picker for `repeatCount`.
         *   [ ] Use Number Range Picker for `repeatDelay`.
         *   [ ] Use Number Range Picker for `attack`.
         *   [ ] Use Number Range Picker for `decay`.
     *   [ ] **Subtask 2.3: Audio File Management**
-        *   Implement logic for uploading, storing, and referencing user-provided audio files.
+        *   When a user wants to add a sound clip, a system file upload UI should appear, asking for a single MP3 audio file.
+        *   Once the user selects a file, it should be copied to the `public/media` folder.
+        *   The `clips` array in the `SoundSource` data object should store a relative path to the audio file (e.g., `media/sound.mp3`).
 
 *   [ ] **Goal 3: Design and Implement Core Channel & Track Editor**
     *   [ ] **Subtask 3.1: Channel Management**
@@ -97,6 +101,7 @@ The project will utilize the following front-end technologies:
 ### Advanced Features
 
 *   [ ] Implement dynamic properties editing, allowing brews to be modified while playing.
+*   [ ] **Clip Sequences:** Implement support for defining a sequence of clips to be played in a specific order. This would involve changing the `clips` property of a `SoundSource` to be an array of arrays of sound clips. The outer array would define the sequence, and the inner array would contain the clips to be chosen from for that step in the sequence.
 
 ### Samples Acqusition and Processing
 *   [ ] Water
