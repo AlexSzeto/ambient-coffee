@@ -13,6 +13,7 @@
     }
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
   <title>Sound Asset Management - Goal 2</title>
 </head>
 <body class="bg-gray-50">
@@ -74,9 +75,9 @@
                 <label class="block text-sm font-medium text-gray-700">Audio Clips</label>
                 <button 
                   id="add-clip-btn"
-                  class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors"
+                  class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition-colors flex items-center gap-2"
                 >
-                  Add Clip
+                  <box-icon name='upload' color='white' size='16px'></box-icon>
                 </button>
               </div>
               <div id="clips-list" class="space-y-2">
@@ -298,9 +299,10 @@
             <span class="text-sm text-gray-700">${clip.split('/').pop()}</span>
             <button 
               onclick="removeClip(${index})"
-              class="text-red-500 hover:text-red-700 text-sm"
+              class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded transition-colors flex items-center justify-center"
+              title="Remove clip"
             >
-              Remove
+              <box-icon name='trash' color='white' size='16px'></box-icon>
             </button>
           </div>
         `).join('');
@@ -385,23 +387,44 @@
           return;
         }
 
+        if (!file.name.toLowerCase().endsWith('.mp3')) {
+          alert('Please select an MP3 file');
+          return;
+        }
+
         try {
-          const formData = new FormData();
-          formData.append('audioFile', file);
+          // Convert file to base64
+          const reader = new FileReader();
+          reader.onload = async function(e) {
+            const base64Data = e.target.result;
+            
+            const response = await fetch('/upload-audio', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                fileName: file.name,
+                fileData: base64Data
+              })
+            });
 
-          const response = await fetch('/upload-audio', {
-            method: 'POST',
-            body: formData
-          });
+            const result = await response.json();
 
-          const result = await response.json();
-
-          if (result.success) {
-            currentSoundSource.clips.push(result.filePath);
-            renderClipsList();
-          } else {
-            alert('Error uploading file: ' + result.error);
-          }
+            if (result.success) {
+              currentSoundSource.clips.push(result.filePath);
+              renderClipsList();
+            } else {
+              alert('Error uploading file: ' + result.error);
+            }
+          };
+          
+          reader.onerror = function() {
+            alert('Error reading file');
+          };
+          
+          reader.readAsDataURL(file);
+          
         } catch (error) {
           alert('Error uploading file: ' + error.message);
         }
